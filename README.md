@@ -35,9 +35,29 @@ This will generate two users in our database. You can define further types and i
 # initial-data.yml
 user:
   - name: Admin
-  - name: Student
+    ...
 
 school:
   - name: School One
-  - name: School Two
+    ...
 ```
+
+If your database already contains data, e.g. from a previous initialization run, then you may want to first delete this data. You can do this by specifying which types to delete in the YAML file:
+
+```yaml
+# initial-data.yml
+delete:
+  - user
+  - school
+  - ...
+
+user:
+  - name: Admin
+    ...
+
+school:
+  - name: School One
+    ...
+```
+
+Watch out, depending on how the data type references each other you may run into problems when deleting data, as Prisma does not yet support cascading deletes. List those types first, which no other types references to in a required relation.
