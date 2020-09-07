@@ -38,7 +38,7 @@ school:
             # however, you will not know the id, so you need another
             # unique attribute to relate to
             connect:
-              - email: voty@somemail.com
+              - email: admin@somemail.com
             create:
               - name: Student-1
                 lastname: Student
