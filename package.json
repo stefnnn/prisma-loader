@@ -3,7 +3,7 @@
   "version": "1.0.9",
   "description": "prisma-loader helps initializing a db with a Prisma model and a YAML file",
   "main": "dist/index.js",
-  "bin": "dist/prisma-loader.js",
+  "bin": "dist/prisma-loader-cli.js",
   "repositories": {
     "type": "git",
     "url": "https://github.com/stefnnn/prisma-loader.git"
@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/prisma-loader.js",
+    "start": "node dist/prisma-loader-cli.js",
+    "example": "node dist/prisma-loader-cli.js examples/example.yml",
     "generate": "npx prisma generate",
     "initdb": "npx prisma migrate save --name init --experimental && npx prisma migrate up --experimental && npx prisma generate"
   },

@@ -1,57 +1,53 @@
-#!/usr/bin/env node
 import { PrismaClient } from "@prisma/client";
 import yaml from "js-yaml";
-import * as fs from "fs";
-import yargs from "yargs";
+import fs from "fs";
 
 const prisma = new PrismaClient();
-run();
 
-async function run() {
-  try {
-    const argv = cliOptions();
-
-    for (let i = 0; i < argv._.length; ++i) {
-      const fixtureFile = String(argv._[i]);
-      console.log(`📦 Loading data from ${fixtureFile}`);
-
-      const data: any = loadFixture(fixtureFile);
-      if (data?.delete) {
-        await deleteObjects(data.delete);
-        delete data.delete;
-      }
-      await createObjects(data);
-      console.log("");
-    }
-
-    process.exit();
-  } catch (err) {
-    console.error("There was an error loading your data", err.message);
-    process.exit(1);
+export async function loadFixture(
+  fixtureFile: string,
+  logger?: (msg: String) => void
+) {
+  logger && logger(`📦 Loading data from ${fixtureFile}`);
+  const data: any = parseYAML(fixtureFile);
+  if (typeof data === "undefined") {
+    throw new Error(`Could not parse YAML file ${fixtureFile}`);
   }
+  if (typeof data !== "object") {
+    throw new Error(
+      "Please specify YAML file as an object, e.g. no '- xyz' on top-level."
+    );
+  }
+  if (data.hasOwnProperty("delete")) {
+    await deleteObjects(data.delete, logger);
+    delete data.delete;
+  }
+  await createObjects(data, logger);
+  logger && logger("");
 }
 
-function loadFixture(filename: string) {
-  const yamlFile = fs.readFileSync(filename, "utf8");
-  const data = yaml.safeLoad(yamlFile);
+function parseYAML(filename: string) {
+  const contents = fs.readFileSync(filename, "utf8");
+  const data = yaml.safeLoad(contents);
   return data;
 }
 
-async function deleteObjects(list: string[]) {
-  console.log("💥 Let's first wipe out existing objects:");
+async function deleteObjects(list: string[], logger?: (msg: String) => void) {
+  logger && logger("💥 Let's first wipe out existing objects:");
   for (const i in list) {
     const type = list[i];
     // @ts-ignore  what's the type for generic PrismaDelegates?
     const obj: any = prisma[type];
-    if (!obj)
+    if (!obj) {
       throw new Error(`Type «${type}» does not exist in your prisma schema.`);
-    const result = await obj.deleteMany({});
-    console.log(`  ... deleted ${result.count} objects of type «${type}»`);
+    }
+    const result = await obj.deleteMany();
+    logger && logger(`  ... deleted ${result.count} objects of type «${type}»`);
   }
 }
 
-async function createObjects(data: any) {
-  console.log("🐣 Let's create new objects:");
+async function createObjects(data: any, logger?: (msg: String) => void) {
+  logger && logger("🐣 Let's create new objects:");
   for (const type in data) {
     // @ts-ignore  what's the type for generic PrismaDelegates?
     const obj: any = prisma[type];
@@ -65,22 +61,9 @@ async function createObjects(data: any) {
       const result = await obj.create({ data: spec });
       if (result) count++;
     }
-    console.log(
-      `  ... created ${count} objects of type «${type}» in db and uncounted linked types`
-    );
+    logger &&
+      logger(
+        `  ... created ${count} objects of type «${type}» in db and uncounted linked types`
+      );
   }
-}
-
-function cliOptions() {
-  return yargs
-    .usage(
-      "npx prisma-loader data.yml    Load data from YAML-file into Prisma schema"
-    )
-    .options("delete", {
-      alias: "d",
-      description: "Delete all existing objects prior to loading data",
-      type: "boolean",
-    })
-    .demandCommand(1)
-    .alias("help", "h").argv;
 }

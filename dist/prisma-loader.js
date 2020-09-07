@@ -1,24 +1,5 @@
 #!/usr/bin/env node
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -32,57 +13,53 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.loadFixture = void 0;
 const client_1 = require("@prisma/client");
 const js_yaml_1 = __importDefault(require("js-yaml"));
-const fs = __importStar(require("fs"));
-const yargs_1 = __importDefault(require("yargs"));
+const fs_1 = __importDefault(require("fs"));
 const prisma = new client_1.PrismaClient();
-run();
-function run() {
+function loadFixture(fixtureFile, logger) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const argv = cliOptions();
-            for (let i = 0; i < argv._.length; ++i) {
-                const fixtureFile = String(argv._[i]);
-                console.log(`📦 Loading data from ${fixtureFile}`);
-                const data = loadFixture(fixtureFile);
-                if (data === null || data === void 0 ? void 0 : data.delete) {
-                    yield deleteObjects(data.delete);
-                    delete data.delete;
-                }
-                yield createObjects(data);
-                console.log("");
-            }
-            process.exit();
+        logger && logger(`📦 Loading data from ${fixtureFile}`);
+        const data = parseYAML(fixtureFile);
+        if (typeof data === "undefined") {
+            throw new Error(`Could not parse YAML file ${fixtureFile}`);
         }
-        catch (err) {
-            console.error("There was an error loading your data", err.message);
-            process.exit(1);
+        if (typeof data !== "object") {
+            throw new Error("Please specify YAML file as an object, e.g. no '- xyz' on top-level.");
         }
+        if (data.hasOwnProperty("delete")) {
+            yield deleteObjects(data.delete, logger);
+            delete data.delete;
+        }
+        yield createObjects(data, logger);
+        logger && logger("");
     });
 }
-function loadFixture(filename) {
-    const yamlFile = fs.readFileSync(filename, "utf8");
-    const data = js_yaml_1.default.safeLoad(yamlFile);
+exports.loadFixture = loadFixture;
+function parseYAML(filename) {
+    const contents = fs_1.default.readFileSync(filename, "utf8");
+    const data = js_yaml_1.default.safeLoad(contents);
     return data;
 }
-function deleteObjects(list) {
+function deleteObjects(list, logger) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("💥 Let's first wipe out existing objects:");
+        logger && logger("💥 Let's first wipe out existing objects:");
         for (const i in list) {
             const type = list[i];
             // @ts-ignore  what's the type for generic PrismaDelegates?
             const obj = prisma[type];
-            if (!obj)
+            if (!obj) {
                 throw new Error(`Type «${type}» does not exist in your prisma schema.`);
-            const result = yield obj.deleteMany({});
-            console.log(`  ... deleted ${result.count} objects of type «${type}»`);
+            }
+            const result = yield obj.deleteMany();
+            logger && logger(`  ... deleted ${result.count} objects of type «${type}»`);
         }
     });
 }
-function createObjects(data) {
+function createObjects(data, logger) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("🐣 Let's create new objects:");
+        logger && logger("🐣 Let's create new objects:");
         for (const type in data) {
             // @ts-ignore  what's the type for generic PrismaDelegates?
             const obj = prisma[type];
@@ -96,19 +73,9 @@ function createObjects(data) {
                 if (result)
                     count++;
             }
-            console.log(`  ... created ${count} objects of type «${type}» in db and uncounted linked types`);
+            logger &&
+                logger(`  ... created ${count} objects of type «${type}» in db and uncounted linked types`);
         }
     });
-}
-function cliOptions() {
-    return yargs_1.default
-        .usage("npx prisma-loader data.yml    Load data from YAML-file into Prisma schema")
-        .options("delete", {
-        alias: "d",
-        description: "Delete all existing objects prior to loading data",
-        type: "boolean",
-    })
-        .demandCommand(1)
-        .alias("help", "h").argv;
 }
 //# sourceMappingURL=prisma-loader.js.map

@@ -8,7 +8,7 @@ Prisma is an open-source database toolkit, that replaces traditional ORMs and ma
 
 👉 [prisma.io/docs/](https://www.prisma.io/docs/)
 
-## How to use this tool
+## Usage from the Command Line
 
 ```
 yarn add prisma-loader -D
@@ -62,3 +62,15 @@ school:
 ```
 
 Watch out, depending on how the data types reference each other you may run into problems when deleting data, as Prisma does not yet support cascading deletes (see [this issue](https://github.com/prisma/prisma/issues/2810)). List those types first, which no other types references to as a required relation.
+
+## Usage in your code
+
+You can also use this tool from within your code, e.g. to load data before every test run
+
+```javascript
+import { loadFixture } from "prisma-loader";
+
+loadFixture("examples/example.yml");
+```
+
+This will execute the data load specified in the YAML file.
