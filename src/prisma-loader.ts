@@ -10,9 +10,9 @@ run();
 async function run() {
   try {
     const argv = cliOptions();
-    let fixtureFile;
 
-    while ((fixtureFile = String(argv._.shift()))) {
+    for (let i = 0; i < argv._.length; ++i) {
+      const fixtureFile = String(argv._[i]);
       console.log(`📦 Loading data from ${fixtureFile}`);
 
       const data: any = loadFixture(fixtureFile);

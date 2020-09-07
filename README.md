@@ -61,4 +61,4 @@ school:
     ...
 ```
 
-Watch out, depending on how the data type references each other you may run into problems when deleting data, as Prisma does not yet support cascading deletes. List those types first, which no other types references to in a required relation.
+Watch out, depending on how the data types reference each other you may run into problems when deleting data, as Prisma does not yet support cascading deletes (see [this issue](https://github.com/prisma/prisma/issues/2810)). List those types first, which no other types references to as a required relation.

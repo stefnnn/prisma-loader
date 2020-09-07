@@ -42,8 +42,8 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const argv = cliOptions();
-            let fixtureFile;
-            while ((fixtureFile = String(argv._.shift()))) {
+            for (let i = 0; i < argv._.length; ++i) {
+                const fixtureFile = String(argv._[i]);
                 console.log(`📦 Loading data from ${fixtureFile}`);
                 const data = loadFixture(fixtureFile);
                 if (data === null || data === void 0 ? void 0 : data.delete) {
