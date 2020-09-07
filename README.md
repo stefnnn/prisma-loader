@@ -11,7 +11,8 @@ Prisma is an open-source database toolkit, that replaces traditional ORMs and ma
 ## How to use this tool
 
 ```
-npx prisma-loader path/to/initial-data.yml
+yarn add prisma-loader -D
+npx prisma-loader path/to/data.yml [more.yml files.yml]
 ```
 
 Let's suppose we want to load two users into our database. Let's also assume, that our [Prisma Schema](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema) has a type «user» already defined (see example [schema.prisma](/prisma/schema.prisma)).

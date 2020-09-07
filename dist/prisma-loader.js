@@ -40,17 +40,25 @@ const prisma = new client_1.PrismaClient();
 run();
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const argv = cliOptions();
-        const fixtureFile = String(argv._.pop());
-        const deleteAll = argv.delete ? true : false;
-        const data = loadFixture(fixtureFile);
-        if (data === null || data === void 0 ? void 0 : data.delete) {
-            yield deleteObjects(data.delete);
-            delete data.delete;
+        try {
+            const argv = cliOptions();
+            let fixtureFile;
+            while ((fixtureFile = String(argv._.shift()))) {
+                console.log(`📦 Loading data from ${fixtureFile}`);
+                const data = loadFixture(fixtureFile);
+                if (data === null || data === void 0 ? void 0 : data.delete) {
+                    yield deleteObjects(data.delete);
+                    delete data.delete;
+                }
+                yield createObjects(data);
+                console.log("");
+            }
+            process.exit();
         }
-        yield createObjects(data);
-        console.log("-----------------------------------------------------------");
-        console.log(`Finished loading database with fixture from ${fixtureFile}`);
+        catch (err) {
+            console.error("There was an error loading your data", err.message);
+            process.exit(1);
+        }
     });
 }
 function loadFixture(filename) {
@@ -60,7 +68,7 @@ function loadFixture(filename) {
 }
 function deleteObjects(list) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Let's first wipe out existing objects:");
+        console.log("💥 Let's first wipe out existing objects:");
         for (const i in list) {
             const type = list[i];
             // @ts-ignore  what's the type for generic PrismaDelegates?
@@ -68,14 +76,13 @@ function deleteObjects(list) {
             if (!obj)
                 throw new Error(`Type «${type}» does not exist in your prisma schema.`);
             const result = yield obj.deleteMany({});
-            console.log(`... deleted ${result.count} objects of type «${type}»`);
+            console.log(`  ... deleted ${result.count} objects of type «${type}»`);
         }
-        console.log("\n");
     });
 }
 function createObjects(data) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Let's create new objects:");
+        console.log("🐣 Let's create new objects:");
         for (const type in data) {
             // @ts-ignore  what's the type for generic PrismaDelegates?
             const obj = prisma[type];
@@ -89,9 +96,8 @@ function createObjects(data) {
                 if (result)
                     count++;
             }
-            console.log(`... created ${count} objects of type «${type}» in db and uncounted linked types`);
+            console.log(`  ... created ${count} objects of type «${type}» in db and uncounted linked types`);
         }
-        console.log("\n");
     });
 }
 function cliOptions() {

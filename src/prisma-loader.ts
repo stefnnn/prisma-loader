@@ -8,17 +8,27 @@ const prisma = new PrismaClient();
 run();
 
 async function run() {
-  const argv = cliOptions();
-  const fixtureFile = String(argv._.pop());
-  const deleteAll = argv.delete ? true : false;
-  const data: any = loadFixture(fixtureFile);
-  if (data?.delete) {
-    await deleteObjects(data.delete);
-    delete data.delete;
+  try {
+    const argv = cliOptions();
+    let fixtureFile;
+
+    while ((fixtureFile = String(argv._.shift()))) {
+      console.log(`📦 Loading data from ${fixtureFile}`);
+
+      const data: any = loadFixture(fixtureFile);
+      if (data?.delete) {
+        await deleteObjects(data.delete);
+        delete data.delete;
+      }
+      await createObjects(data);
+      console.log("");
+    }
+
+    process.exit();
+  } catch (err) {
+    console.error("There was an error loading your data", err.message);
+    process.exit(1);
   }
-  await createObjects(data);
-  console.log("-----------------------------------------------------------");
-  console.log(`Finished loading database with fixture from ${fixtureFile}`);
 }
 
 function loadFixture(filename: string) {
@@ -28,7 +38,7 @@ function loadFixture(filename: string) {
 }
 
 async function deleteObjects(list: string[]) {
-  console.log("Let's first wipe out existing objects:");
+  console.log("💥 Let's first wipe out existing objects:");
   for (const i in list) {
     const type = list[i];
     // @ts-ignore  what's the type for generic PrismaDelegates?
@@ -36,13 +46,12 @@ async function deleteObjects(list: string[]) {
     if (!obj)
       throw new Error(`Type «${type}» does not exist in your prisma schema.`);
     const result = await obj.deleteMany({});
-    console.log(`... deleted ${result.count} objects of type «${type}»`);
+    console.log(`  ... deleted ${result.count} objects of type «${type}»`);
   }
-  console.log("\n");
 }
 
 async function createObjects(data: any) {
-  console.log("Let's create new objects:");
+  console.log("🐣 Let's create new objects:");
   for (const type in data) {
     // @ts-ignore  what's the type for generic PrismaDelegates?
     const obj: any = prisma[type];
@@ -57,10 +66,9 @@ async function createObjects(data: any) {
       if (result) count++;
     }
     console.log(
-      `... created ${count} objects of type «${type}» in db and uncounted linked types`
+      `  ... created ${count} objects of type «${type}» in db and uncounted linked types`
     );
   }
-  console.log("\n");
 }
 
 function cliOptions() {
