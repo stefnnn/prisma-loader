@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { PrismaClient } from "@prisma/client";
 import yaml from "js-yaml";
 import * as fs from "fs";
