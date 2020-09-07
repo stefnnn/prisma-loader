@@ -1,3 +1,4 @@
+// @ts-ignore
 import { PrismaClient } from "@prisma/client";
 import yaml from "js-yaml";
 import fs from "fs";
