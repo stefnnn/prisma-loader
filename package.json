@@ -1,6 +1,6 @@
 {
   "name": "prisma-loader",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "prisma-loader helps initializing a db with a Prisma model and a YAML file",
   "main": "dist/index.js",
   "bin": "dist/prisma-loader-cli.js",
@@ -28,13 +28,15 @@
   "author": "stefnnn@users.noreply.github.com",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "@prisma/client": "2.6.2",
-    "@tsconfig/recommended": "^1.0.1",
     "js-yaml": "^3.14.0",
     "yargs": "^15.4.1"
   },
+  "peerDependencies": {
+    "@prisma/client": "2.x"
+  },
   "devDependencies": {
     "@prisma/cli": "2.6.2",
+    "@tsconfig/recommended": "^1.0.1",
     "@types/js-yaml": "^3.12.5",
     "@types/node": "^14.6.4",
     "@types/yargs": "^15.0.5",
