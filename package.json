@@ -1,8 +1,8 @@
 {
   "name": "prisma-loader",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "prisma-loader helps initializing a db with a Prisma model and a YAML file",
-  "main": "dist/prisma-loader.js",
+  "main": "dist/index.js",
   "bin": "dist/prisma-loader.js",
   "repositories": {
     "type": "git",
