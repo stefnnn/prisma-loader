@@ -74,3 +74,36 @@ loadFixture("examples/example.yml");
 ```
 
 This will execute the data load specified in the YAML file.
+
+## Usage in Cypress
+
+If you would like to use this to load predefined data before every test run with cypress.io, then you need to set up cypress as follows:
+
+```
+// in cypress/plugins/index.js
+const { loadFixture } = require("prisma-loader");
+
+module.exports = (on, config) => {
+  on("task", {
+    async prismaLoader(fixtureFile) {
+      const file = `${config.fixturesFolder}/${fixtureFile}`;
+      await loadFixture(file);
+      return null;
+    },
+  });
+}
+```
+
+This makes available a cypress task, which can be used as follows:
+
+```
+describe("Some test", () => {
+  beforeEach(() => {
+    // test-data.yml will be loaded from cypress/fixtures/...
+    cy.task("prismaLoader", "test-data.yml");
+  });
+
+  it("Already has the data loaded", {
+    ...
+  });
+```
